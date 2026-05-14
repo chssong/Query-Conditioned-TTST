@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="Query-Conditioned Test-Time Self-Training for Large Language Models — a framework that adapts model parameters during inference using supervision derived directly from the input query.">
+  <meta name="keywords" content="QueST, Test-Time Self-Training, LLM, Test-Time Adaptation, Query-Conditioned, Mathematical Reasoning">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Query-Conditioned Test-Time Self-Training for Large Language Models</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+
+  <style>
+    :root {
+      --brand-1: #4f46e5;  /* indigo-600 */
+      --brand-2: #7c3aed;  /* violet-600 */
+      --brand-3: #ec4899;  /* pink-500 */
+      --ink-900: #0f172a;
+      --ink-700: #334155;
+      --ink-500: #64748b;
+      --soft-bg: #f8fafc;
+    }
+
+    body {
+      font-family: 'Noto Sans', sans-serif;
+      color: var(--ink-900);
+      background: #ffffff;
+    }
+
+    /* Hero: soft gradient background + decorative blob */
+    section.hero:first-of-type {
+      background: linear-gradient(180deg, #f5f3ff 0%, #eef2ff 35%, #ffffff 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    section.hero:first-of-type::before {
+      content: "";
+      position: absolute;
+      top: -260px;
+      left: 50%;
+      width: 900px;
+      height: 700px;
+      transform: translateX(-50%);
+      background:
+        radial-gradient(ellipse 45% 55% at 50% 45%, rgba(124, 58, 237, 0.22) 0%, transparent 70%),
+        radial-gradient(ellipse 55% 40% at 30% 60%, rgba(79, 70, 229, 0.18) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 35% at 70% 55%, rgba(236, 72, 153, 0.14) 0%, transparent 70%);
+      filter: blur(8px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    section.hero:first-of-type .hero-body {
+      position: relative;
+      z-index: 1;
+      padding-top: 4.5rem;
+      padding-bottom: 4rem;
+    }
+
+    .hero-title-container {
+      max-width: 1152px !important;
+    }
+
+    .publication-title {
+      font-family: 'Google Sans', sans-serif;
+      font-weight: 700 !important;
+      letter-spacing: -0.02em;
+      line-height: 1.18 !important;
+      background: linear-gradient(120deg, #1e1b4b 0%, #4338ca 45%, #7c3aed 75%, #ec4899 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+      margin-bottom: 1.75rem !important;
+    }
+
+    .publication-authors {
+      font-family: 'Google Sans', sans-serif;
+    }
+
+    .publication-authors .author-block {
+      display: inline-block;
+      margin: 0 0.35rem;
+      color: var(--ink-700);
+      font-weight: 500;
+    }
+
+    .publication-authors sup {
+      color: var(--brand-2);
+      font-weight: 700;
+      margin-left: 1px;
+    }
+
+    .publication-authors + .publication-authors {
+      margin-top: 0.4rem;
+      font-size: 0.92rem !important;
+      color: var(--ink-500);
+    }
+
+    .publication-authors + .publication-authors .author-block {
+      color: var(--ink-500);
+      font-weight: 400;
+    }
+
+    .publication-authors a {
+      color: var(--brand-1) !important;
+    }
+
+    .publication-authors a:hover {
+      text-decoration: underline;
+    }
+
+    /* Buttons: gradient fill + soft lift on hover */
+    .publication-links {
+      margin-top: 1.75rem;
+    }
+
+    .publication-links .button.is-dark {
+      background: linear-gradient(135deg, #1e293b 0%, #312e81 100%) !important;
+      border: none !important;
+      color: #ffffff !important;
+      font-weight: 500;
+      box-shadow: 0 6px 18px rgba(30, 27, 75, 0.18);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.25s ease;
+    }
+
+    .publication-links .button.is-dark:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 26px rgba(124, 58, 237, 0.35);
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 60%, #ec4899 100%) !important;
+    }
+
+    .link-block a {
+      margin: 5px 4px;
+    }
+
+    .link-block a.is-disabled {
+      pointer-events: none;
+      opacity: 0.5;
+      cursor: not-allowed;
+      filter: grayscale(35%);
+    }
+
+    /* Teaser */
+    .teaser .hero-body {
+      padding-top: 0.5rem;
+      padding-bottom: 3rem;
+    }
+
+    .teaser {
+      font-family: 'Google Sans', sans-serif;
+    }
+
+    .teaser-fig-container {
+      max-width: 1400px;
+      margin-left: auto;
+      margin-right: auto;
+      padding: 0 1rem;
+    }
+
+    .teaser-fig {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 16px;
+      box-shadow: 0 12px 36px rgba(15, 23, 42, 0.10), 0 2px 8px rgba(15, 23, 42, 0.06);
+    }
+
+    .teaser p {
+      color: var(--ink-500);
+      font-size: 1.02rem;
+    }
+
+    /* Abstract section: lighter background + nicer typography */
+    .hero.is-light {
+      background-color: var(--soft-bg) !important;
+    }
+
+    .hero.is-light .title.is-3 {
+      font-family: 'Google Sans', sans-serif;
+      font-weight: 600;
+      color: var(--ink-900);
+      position: relative;
+      display: inline-block;
+      padding-bottom: 0.5rem;
+    }
+
+    .hero.is-light .title.is-3::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-50%);
+      width: 64px;
+      height: 3px;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--brand-1), var(--brand-2), var(--brand-3));
+    }
+
+    .hero.is-light .content p {
+      line-height: 1.75;
+      color: var(--ink-700);
+      font-size: 1.04rem;
+    }
+
+    /* Main Results section (and similar .section blocks) */
+    section.section .title.is-3 {
+      font-family: 'Google Sans', sans-serif;
+      font-weight: 600;
+      color: var(--ink-900);
+      position: relative;
+      display: inline-block;
+      padding-bottom: 0.5rem;
+    }
+
+    section.section .title.is-3::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-50%);
+      width: 64px;
+      height: 3px;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--brand-1), var(--brand-2), var(--brand-3));
+    }
+
+    .results-caption {
+      max-width: 900px;
+      margin: 1rem auto 1.75rem auto;
+      color: var(--ink-700);
+      line-height: 1.7;
+      font-size: 1.02rem;
+    }
+
+    .results-fig img {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.10), 0 2px 6px rgba(15, 23, 42, 0.05);
+      border: 1px solid rgba(15, 23, 42, 0.06);
+    }
+
+    /* Sub-section heading inside a section */
+    .subsection-title {
+      font-family: 'Google Sans', sans-serif;
+      font-weight: 600 !important;
+      color: var(--ink-900);
+      font-size: 1.35rem !important;
+      margin-bottom: 0.5rem !important;
+    }
+
+    .subsection-title::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--brand-1), var(--brand-2));
+      margin-right: 0.6rem;
+      vertical-align: middle;
+      transform: translateY(-2px);
+    }
+
+    .subsection-block + .subsection-block {
+      margin-top: 3rem;
+    }
+
+    /* BibTeX */
+    #BibTeX .title {
+      font-family: 'Google Sans', sans-serif;
+      font-weight: 600;
+    }
+
+    #BibTeX pre {
+      background: #f8fafc;
+      color: var(--ink-900);
+      border: 1px solid rgba(99, 102, 241, 0.18);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 6px 18px rgba(99, 102, 241, 0.08), 0 1px 0 rgba(255,255,255,0.6) inset;
+    }
+
+    #BibTeX code {
+      background: transparent;
+      color: inherit;
+      font-family: 'JetBrains Mono', 'Consolas', monospace;
+      font-size: 0.92rem;
+    }
+
+    .bibtex-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.9rem;
+    }
+
+    .bibtex-header h2 {
+      margin-bottom: 0 !important;
+    }
+
+    .bibtex-copy-btn {
+      background: linear-gradient(135deg, var(--brand-1), var(--brand-2)) !important;
+      color: white !important;
+      border: none !important;
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .bibtex-copy-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(124, 58, 237, 0.35);
+    }
+
+    /* Footer */
+    .footer {
+      background: var(--soft-bg);
+    }
+
+    .footer .icon-link {
+      font-size: 25px;
+      color: var(--ink-900);
+    }
+
+    .footer a {
+      color: var(--brand-1);
+    }
+
+    /* Smooth scroll */
+    html { scroll-behavior: smooth; }
+
+    @media (max-width: 768px) {
+      .publication-title { font-size: 1.85rem !important; }
+      section.hero:first-of-type .hero-body { padding-top: 3rem; padding-bottom: 2.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop hero-title-container">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">Query-Conditioned Test-Time Self-Training for Large Language Models</h1>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">Chaehee Song<sup>*</sup>,</span>
+            <span class="author-block">Minseok Seo<sup>*</sup>,</span>
+            <span class="author-block">Yeeun Seong,</span>
+            <span class="author-block">Doyi Kim,</span>
+            <span class="author-block">Changick Kim<sup>&dagger;</sup></span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block"><sup>*</sup>Equal contribution</span>
+            <span class="author-block"><sup>&dagger;</sup>Corresponding author</span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- PDF Link. -->
+              <span class="link-block">
+                <a href="https://arxiv.org/pdf/2605.13369"
+                   class="external-link button is-normal is-rounded is-dark"
+                   target="_blank" rel="noopener noreferrer">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span>
+              <!-- arXiv Link. -->
+              <span class="link-block">
+                <a href="https://arxiv.org/abs/2605.13369"
+                   class="external-link button is-normal is-rounded is-dark"
+                   target="_blank" rel="noopener noreferrer">
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+              <!-- Code Link. -->
+              <span class="link-block">
+                <a href="https://github.com/chssong/Query-Conditioned-TTST"
+                   class="external-link button is-normal is-rounded is-dark"
+                   target="_blank" rel="noopener noreferrer">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code</span>
+                </a>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="hero teaser">
+  <div class="container teaser-fig-container">
+    <div class="hero-body">
+      <img id="teaser" src="./teaser.png" alt="QueST teaser figure" class="teaser-fig">
+      <p class="has-text-centered" style="margin-top: 1.25rem; max-width: 1000px; margin-left: auto; margin-right: auto;">
+        QueST achieves higher accuracy with substantially fewer test-time tokens than sampling-based test-time scaling baselines.<br>
+        Existing test-time scaling approaches require many more tokens to reach comparable accuracy.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<section class="hero is-light is-small">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Abstract</h2>
+          <div class="content has-text-justified">
+            <p>
+              Large language models (LLMs) are typically deployed with fixed parameters, and their performance is often
+              improved by allocating more computation at inference time. While such test-time scaling can be effective,
+              it cannot correct model misconceptions or adapt the model to the specific structure of an individual query.
+              Test-time optimization addresses this limitation by enabling parameter updates during inference, but
+              existing approaches either rely on external data or optimize generic self-supervised objectives that lack
+              query-specific alignment. In this work, we propose Query-Conditioned Test-Time Self-Training (QueST), a
+              framework that adapts model parameters during inference using supervision derived directly from the input
+              query. Our key insight is that the input query itself encodes latent signals sufficient for constructing
+              structurally related problem&ndash;solution pairs. Based on this, QueST generates such query-conditioned
+              pairs and uses them as supervision for parameter-efficient fine-tuning at test time. The adapted model is
+              then used to produce the final answer, enabling query-specific adaptation without any external data.
+              Across seven mathematical reasoning benchmarks and the GPQA-Diamond scientific reasoning benchmark, QueST
+              consistently outperforms strong test-time optimization baselines. These results demonstrate that
+              query-conditioned self-training is an effective and practical paradigm for test-time adaptation in LLMs.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column">
+        <div class="figure-caption-above">
+          <h2 class="title is-3">Main Results</h2>
+          <p class="results-caption">
+            Quantitative comparison of QueST with existing test-time optimization methods (TENT, TLM) across seven mathematical reasoning benchmarks. All methods are evaluated under the same experimental setup.<br>
+            QueST consistently outperforms both the base model and prior baselines on every LLM.
+          </p>
+        </div>
+        <figure class="image results-fig">
+          <img src="./main_results.png" alt="Main results table">
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column">
+        <h2 class="title is-3">Qualitative Examples</h2>
+      </div>
+    </div>
+
+    <div class="subsection-block">
+      <div class="columns is-centered has-text-centered">
+        <div class="column">
+          <h3 class="subsection-title">Generated Problem&ndash;Solution Pairs</h3>
+          <p class="results-caption">
+            QueST generates problems ranging from surface-level variations (top) to structural transformations (bottom), depending on the input query. These diverse problems serve as supervision signals for test-time adaptation.
+          </p>
+          <figure class="image results-fig">
+            <img src="./fig3_qualitative.png" alt="Generated problem-solution pairs">
+          </figure>
+        </div>
+      </div>
+    </div>
+
+    <div class="subsection-block">
+      <div class="columns is-centered has-text-centered">
+        <div class="column">
+          <h3 class="subsection-title">Test-Time Correction</h3>
+          <p class="results-caption">
+            While the baseline fails to produce the correct answer, QueST adapts at test time using query-conditioned supervision and recovers the correct solution.
+          </p>
+          <figure class="image results-fig">
+            <img src="./fig4_qualitative.png" alt="Test-time correction example">
+          </figure>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <div class="bibtex-header">
+      <h2 class="title">BibTeX</h2>
+      <button type="button" class="button is-small" id="bibtex-copy-btn" title="Copy to clipboard">
+        <span class="icon"><i class="fas fa-copy"></i></span>
+        <span>Copy</span>
+      </button>
+    </div>
+    <pre><code id="bibtex-content">@misc{song2026queryconditionedtesttimeselftraininglarge,
+      title={Query-Conditioned Test-Time Self-Training for Large Language Models},
+      author={Chaehee Song and Minseok Seo and Yeeun Seong and Doyi Kim and Changick Kim},
+      year={2026},
+      eprint={2605.13369},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2605.13369},
+}</code></pre>
+  </div>
+</section>
+
+<script>
+(function() {
+  var btn = document.getElementById('bibtex-copy-btn');
+  var code = document.getElementById('bibtex-content');
+  if (btn && code) {
+    btn.addEventListener('click', function() {
+      navigator.clipboard.writeText(code.textContent).then(function() {
+        var label = btn.querySelector('span:last-child');
+        var icon = btn.querySelector('.icon i');
+        if (label) label.textContent = 'Copied!';
+        if (icon) { icon.classList.remove('fa-copy'); icon.classList.add('fa-check'); }
+        setTimeout(function() {
+          if (label) label.textContent = 'Copy';
+          if (icon) { icon.classList.remove('fa-check'); icon.classList.add('fa-copy'); }
+        }, 1500);
+      });
+    });
+  }
+})();
+</script>
+
+
+<footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content has-text-centered">
+          <p>
+            This page is based on the <a href="https://github.com/nerfies/nerfies.github.io" target="_blank" rel="noopener noreferrer">Nerfies</a> project page template.
+            This website is licensed under a <a rel="license noopener noreferrer"
+                                                href="http://creativecommons.org/licenses/by-sa/4.0/"
+                                                target="_blank">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
