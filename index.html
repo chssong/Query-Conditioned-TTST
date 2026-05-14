@@ -272,52 +272,6 @@
       margin-top: 3rem;
     }
 
-    /* BibTeX */
-    #BibTeX .title {
-      font-family: 'Google Sans', sans-serif;
-      font-weight: 600;
-    }
-
-    #BibTeX pre {
-      background: #f8fafc;
-      color: var(--ink-900);
-      border: 1px solid rgba(99, 102, 241, 0.18);
-      border-radius: 12px;
-      padding: 1.25rem 1.5rem;
-      box-shadow: 0 6px 18px rgba(99, 102, 241, 0.08), 0 1px 0 rgba(255,255,255,0.6) inset;
-    }
-
-    #BibTeX code {
-      background: transparent;
-      color: inherit;
-      font-family: 'JetBrains Mono', 'Consolas', monospace;
-      font-size: 0.92rem;
-    }
-
-    .bibtex-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 0.9rem;
-    }
-
-    .bibtex-header h2 {
-      margin-bottom: 0 !important;
-    }
-
-    .bibtex-copy-btn {
-      background: linear-gradient(135deg, var(--brand-1), var(--brand-2)) !important;
-      color: white !important;
-      border: none !important;
-      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-    }
-
-    .bibtex-copy-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(124, 58, 237, 0.35);
-    }
-
     /* Footer */
     .footer {
       background: var(--soft-bg);
@@ -506,49 +460,6 @@
     </div>
   </div>
 </section>
-
-
-<section class="section" id="BibTeX">
-  <div class="container is-max-desktop content">
-    <div class="bibtex-header">
-      <h2 class="title">BibTeX</h2>
-      <button type="button" class="button is-small" id="bibtex-copy-btn" title="Copy to clipboard">
-        <span class="icon"><i class="fas fa-copy"></i></span>
-        <span>Copy</span>
-      </button>
-    </div>
-    <pre><code id="bibtex-content">@misc{song2026queryconditionedtesttimeselftraininglarge,
-      title={Query-Conditioned Test-Time Self-Training for Large Language Models},
-      author={Chaehee Song and Minseok Seo and Yeeun Seong and Doyi Kim and Changick Kim},
-      year={2026},
-      eprint={2605.13369},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2605.13369},
-}</code></pre>
-  </div>
-</section>
-
-<script>
-(function() {
-  var btn = document.getElementById('bibtex-copy-btn');
-  var code = document.getElementById('bibtex-content');
-  if (btn && code) {
-    btn.addEventListener('click', function() {
-      navigator.clipboard.writeText(code.textContent).then(function() {
-        var label = btn.querySelector('span:last-child');
-        var icon = btn.querySelector('.icon i');
-        if (label) label.textContent = 'Copied!';
-        if (icon) { icon.classList.remove('fa-copy'); icon.classList.add('fa-check'); }
-        setTimeout(function() {
-          if (label) label.textContent = 'Copy';
-          if (icon) { icon.classList.remove('fa-check'); icon.classList.add('fa-copy'); }
-        }, 1500);
-      });
-    });
-  }
-})();
-</script>
 
 
 <footer class="footer">
