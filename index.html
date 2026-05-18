@@ -272,6 +272,76 @@
       margin-top: 3rem;
     }
 
+    /* BibTeX section */
+    .bibtex-section {
+      background: var(--soft-bg);
+    }
+
+    .bibtex-section .title.is-3 {
+      font-family: 'Google Sans', sans-serif;
+      font-weight: 600;
+      color: var(--ink-900);
+      position: relative;
+      display: inline-block;
+      padding-bottom: 0.5rem;
+    }
+
+    .bibtex-section .title.is-3::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-50%);
+      width: 64px;
+      height: 3px;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--brand-1), var(--brand-2), var(--brand-3));
+    }
+
+    .bibtex-block {
+      max-width: 820px;
+      margin: 1.5rem auto 0 auto;
+      background: #ffffff;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      padding: 1.25rem 1.5rem;
+      text-align: left;
+      position: relative;
+    }
+
+    .bibtex-block pre {
+      background: transparent;
+      padding: 0;
+      margin: 0;
+      font-family: 'Castoro', 'Courier New', monospace;
+      font-size: 0.95rem;
+      color: var(--ink-900);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .bibtex-copy-btn {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.35rem 0.75rem;
+      font-family: 'Google Sans', sans-serif;
+      font-size: 0.82rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .bibtex-copy-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(124, 58, 237, 0.35);
+    }
+
     /* Footer */
     .footer {
       background: var(--soft-bg);
@@ -455,6 +525,31 @@
           <figure class="image results-fig">
             <img src="./fig4_qualitative.png" alt="Test-time correction example">
           </figure>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="section bibtex-section" id="BibTeX">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column">
+        <h2 class="title is-3">BibTeX</h2>
+        <div class="bibtex-block">
+          <button class="bibtex-copy-btn" onclick="
+            const t=this.nextElementSibling.innerText;
+            navigator.clipboard.writeText(t);
+            const o=this.innerText;this.innerText='Copied!';
+            setTimeout(()=>this.innerText=o,1500);
+          ">Copy</button>
+<pre>@article{song2026query,
+  title={Query-Conditioned Test-Time Self-Training for Large Language Models},
+  author={Song, Chaehee and Seo, Minseok and Seong, Yeeun and Kim, Doyi and Kim, Changick},
+  journal={arXiv preprint arXiv:2605.13369},
+  year={2026}
+}</pre>
         </div>
       </div>
     </div>
